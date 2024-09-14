@@ -8,12 +8,12 @@ import uuid
 
 
 def _hash_password(password: str) -> bytes:
-    """ Returns a salted hashed password of the added password."""
+    """Returns a salted hashed password of the added password."""
     return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
 
 
 def _generate_uuid() -> str:
-    """ Gets a string representation of a new UUID"""
+    """Gets a string representation of a new UUID"""
     return str(uuid.uuid4())
 
 
@@ -21,7 +21,7 @@ class Auth:
     """Auth class to interact with the authentication database."""
 
     def __init__(self):
-        """ Initiating instances method"""
+        """Initiating instances method"""
         self._db = DB()
 
     def register_user(self, email: str, password: str) -> User:
@@ -35,11 +35,11 @@ class Auth:
             return self._db.add_user(email, _hash_password(password))
 
     def valid_login(self, email: str, password: str) -> bool:
-        """ Check user's credentials."""
+        """Check user's credentials."""
         try:
             user = self._db.find_user_by(email=email)
-            return bcrypt.checkpw(password.encode("utf-8"),
-                                  user.hashed_password)
+            x = bcrypt.checkpw(password.encode("utf-8"), user.hashed_password)
+            return x
         except NoResultFound:
             return False
 
@@ -65,7 +65,6 @@ class Auth:
         """Destroy a session"""
         self._db.update_user(user_id, session_id=None)
 
-
     def get_reset_password_token(self, email: str) -> str:
         """Get a reset password token"""
         try:
@@ -80,8 +79,9 @@ class Auth:
         """Update a user's password"""
         try:
             user = self._db.find_user_by(reset_token=reset_token)
-            self._db.update_user(user.id,
-                                 hashed_password=_hash_password(password))
+            self._db.update_user(
+                user.id, hashed_password=_hash_password(password)
+                )
             self._db.update_user(user.id, reset_token=None)
         except NoResultFound:
             raise ValueError
